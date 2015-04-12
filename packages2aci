@@ -5,7 +5,7 @@ set -e
 SRCDIR=$1
 
 if [[ -z "${SRCDIR}" ]]; then
-  echo "Please pass directory containing image to build"
+  echo "Syntax: packages2aci <directory>"
   exit 1
 fi
 
