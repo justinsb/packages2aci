@@ -1,0 +1,63 @@
+#!/bin/bash
+
+set -e
+
+SRCDIR=$1
+
+if [[ -z "${SRCDIR}" ]]; then
+  echo "Please pass directory containing image to build"
+  exit 1
+fi
+
+if [[ ! -d "${SRCDIR}" ]]; then
+  echo "$1 is not a directory"
+  exit 1
+fi
+
+which actool || (echo "Make sure actool is on your path"; exit 1)
+
+pushd ${SRCDIR}
+SRCDIR=`pwd`
+popd
+
+OUTPUT=${SRCDIR}/image.aci
+BUILD=${SRCDIR}/.build/
+
+# apt-get reuses cached packages
+mkdir -p ${BUILD}/packages/
+
+# start from an empty build directory every time
+rm -rf ${BUILD}/layout
+mkdir -p ${BUILD}/layout/rootfs/
+
+# download packages specified in packages
+for p in `cat ${SRCDIR}/packages`; do
+  echo "Downloading $p"
+  pushd ${BUILD}/packages/
+  apt-get download $p
+  popd
+done
+
+# extract the packages into the rootfs dir
+for d in ${BUILD}/packages/*.deb; do
+  echo "Extracting $d"
+  dpkg-deb -x ${d} ${BUILD}/layout/rootfs/
+done
+
+# copy the ACI manifest file
+cp ${SRCDIR}/manifest ${BUILD}/layout/
+
+# call user postbuild script
+if [[ -x ${SRCDIR}/postbuild ]]; then
+  pushd ${BUILD}/layout/rootfs
+  ${SRCDIR}/postbuild ${BUILD}/layout/rootfs
+  popd
+fi
+
+# build the ACI
+actool build --overwrite ${BUILD}/layout/ ${OUTPUT}
+
+# great success
+echo "Your image is now available at ${OUTPUT}"
+echo "Test with: sudo rkt --insecure-skip-verify=true run ${OUTPUT}"
+ 

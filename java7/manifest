@@ -1,0 +1,10 @@
+{
+  "acVersion": "0.5.1",
+  "acKind": "ImageManifest",
+  "name": "java",
+  "app": {
+    "exec": [ "/java", "-version" ],
+    "user": "0",
+    "group": "0"
+  }
+}
