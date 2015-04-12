@@ -12,6 +12,12 @@ It includes an example to build a Java7 base image in [java7](java7).
 1. (Optional) Create a [postbuild](java7/postbuild) script to do any post-processing after the packages are installed.  Here, we set up a convenience symlink.
 1. Run `build.sh <dirname>` to build your ACI image (e.g. `build.sh java7`)
 
+Your ACI image is then in `<dirname>/image.aci`.  Run it using:
+
+```
+sudo rkt --insecure-skip-verify=true run java7/image.aci
+```
+
 ### Limitations:
 
 * You have to specify each package individually; it doesn't do recursive dependency analysis.
